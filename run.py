@@ -33,57 +33,47 @@ class Passenger(db.Model):
     survived = db.Column(db.Integer)
     pclass = db.Column(db.Integer)
 
-# Load user for session
+# Flask-Login user loader
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Home route - shows signup form
+# Routes
 @app.route('/')
 def home():
     return render_template('signup.html')
 
-# Handle signup
 @app.route('/signup', methods=['POST'])
 def signup():
     username = request.form['username']
     password = request.form['password']
-
     existing_user = User.query.filter_by(username=username).first()
     if existing_user:
         return "Username already taken!"
-
     hashed_pw = generate_password_hash(password)
     new_user = User(username=username, password=hashed_pw)
     db.session.add(new_user)
     db.session.commit()
-
     return "Signup successful!"
 
-# Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
         user = User.query.filter_by(username=username).first()
         if not user or not check_password_hash(user.password, password):
             return "Invalid credentials!"
-
         login_user(user)
         return redirect('/dashboard')
-
     return render_template('login.html')
 
-# Logout route
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect('/')
 
-# Protected dashboard
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -92,14 +82,23 @@ def dashboard():
     <a href='/data-dashboard'>View Titanic Data</a>
     """
 
-# Titanic data dashboard
 @app.route('/data-dashboard')
 @login_required
 def data_dashboard():
     passengers = Passenger.query.limit(20).all()
-    return render_template('dashboard.html', passengers=passengers)
+    total_survived = Passenger.query.filter_by(survived=1).count()
+    total_died = Passenger.query.filter_by(survived=0).count()
+    pclass_counts = db.session.query(Passenger.pclass, db.func.count(Passenger.id)).group_by(Passenger.pclass).all()
 
-# Create tables and run app
+    return render_template(
+        'dashboard.html',
+        passengers=passengers,
+        total_survived=total_survived,
+        total_died=total_died,
+        pclass_counts=pclass_counts
+    )
+
+# Run the app
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

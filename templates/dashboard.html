@@ -1,30 +1,83 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <h2>Passenger Data Dashboard</h2>
-    <table border="1" cellpadding="5" cellspacing="0">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Age</th>
-          <th>Sex</th>
-          <th>Survived</th>
-          <th>Class</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in passengers %}
-        <tr>
-          <td>{{ p.name }}</td>
-          <td>{{ p.age or 'N/A' }}</td>
-          <td>{{ p.sex }}</td>
-          <td>{{ 'Yes' if p.survived else 'No' }}</td>
-          <td>{{ p.pclass }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <br>
-    <a href="/logout">Logout</a>
-  </body>
+<head>
+  <title>Titanic Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h2>Passenger Data Dashboard</h2>
+
+  <!-- Survival Rate Pie Chart -->
+  <h3>Survival Rate</h3>
+  <canvas id="survivalChart" width="400" height="200"></canvas>
+
+  <!-- Passenger Class Bar Chart -->
+  <h3>Passenger Class Distribution</h3>
+  <canvas id="classChart" width="400" height="200"></canvas>
+
+  <!-- Passenger Table -->
+  <h3>Passenger Table</h3>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Sex</th>
+        <th>Survived</th>
+        <th>Class</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in passengers %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.age or 'N/A' }}</td>
+        <td>{{ p.sex }}</td>
+        <td>{{ 'Yes' if p.survived else 'No' }}</td>
+        <td>{{ p.pclass }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <br><a href="/logout">Logout</a>
+
+  <!-- Chart Script -->
+  <script>
+    // Survival Pie Chart
+    const survivalCtx = document.getElementById('survivalChart').getContext('2d');
+    new Chart(survivalCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Survived', 'Died'],
+        datasets: [{
+          data: [{{ total_survived }}, {{ total_died }}],
+          backgroundColor: ['#4caf50', '#f44336']
+        }]
+      }
+    });
+
+    // Class Bar Chart
+    const classCtx = document.getElementById('classChart').getContext('2d');
+    new Chart(classCtx, {
+      type: 'bar',
+      data: {
+        labels: [
+          {% for c in pclass_counts %}
+            'Class {{ c[0] }}'{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        ],
+        datasets: [{
+          label: 'Passenger Count',
+          data: [
+            {% for c in pclass_counts %}
+              {{ c[1] }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          ],
+          backgroundColor: '#2196f3'
+        }]
+      }
+    });
+  </script>
+</body>
 </html>
