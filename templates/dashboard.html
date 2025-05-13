@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h2>Passenger Data Dashboard</h2>
+    <table border="1" cellpadding="5" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Sex</th>
+          <th>Survived</th>
+          <th>Class</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in passengers %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ p.age or 'N/A' }}</td>
+          <td>{{ p.sex }}</td>
+          <td>{{ 'Yes' if p.survived else 'No' }}</td>
+          <td>{{ p.pclass }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <a href="/logout">Logout</a>
+  </body>
+</html>
